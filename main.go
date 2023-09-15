@@ -98,11 +98,79 @@ func DemoAdapter() {
 	fmt.Printf("json client: %v, yaml: %v\n", client.Data, input.DecodeYAML())
 }
 
+type Operation int
+
+const (
+	Add Operation = iota
+	Sub
+	Mul
+	Div
+)
+
+type Calculator interface {
+	Calculate() int
+}
+
+type Oper struct {
+	Type  Operation
+	Left  Calculator
+	Right Calculator
+}
+
+func (o Oper) Calculate() int {
+	switch {
+	case o.Type == Add:
+		log.Printf("%d+%d\n", o.Left.Calculate(), o.Right.Calculate())
+		return o.Left.Calculate() + o.Right.Calculate()
+	case o.Type == Sub:
+		log.Printf("%d-%d\n", o.Left.Calculate(), o.Right.Calculate())
+		return o.Left.Calculate() - o.Right.Calculate()
+	case o.Type == Mul:
+		log.Printf("%d*%d\n", o.Left.Calculate(), o.Right.Calculate())
+		return o.Left.Calculate() * o.Right.Calculate()
+	case o.Type == Div:
+		log.Printf("%d/%d\n", o.Left.Calculate(), o.Right.Calculate())
+		return o.Left.Calculate() / o.Right.Calculate()
+	}
+	return 0
+}
+
+type Number struct {
+	Value int
+}
+
+func (n *Number) Calculate() int {
+	return n.Value
+}
+
+func DemoComposite() {
+	root := &Oper{
+		Type: Div,
+		Left: &Oper{
+			Type: Mul,
+			Left: &Oper{
+				Type:  Add,
+				Left:  &Number{Value: 2},
+				Right: &Number{Value: 3},
+			},
+			Right: &Oper{
+				Type:  Sub,
+				Left:  &Number{Value: 77},
+				Right: &Number{Value: 55},
+			},
+		},
+		Right: &Number{Value: 2},
+	}
+	log.Println("Result:", root.Calculate())
+}
+
 func main() {
 	border("Decorator")
 	DemoDecorator()
 	border("Adapter")
 	DemoAdapter()
+	border("Composite")
+	DemoComposite()
 }
 
 func border(name string) {
